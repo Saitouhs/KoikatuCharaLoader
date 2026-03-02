@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 
@@ -146,6 +147,30 @@ def test_scene_to_dict():
 
     # Check that the object count matches
     assert scene_dict["objectCount"] == len(scene_data.objects)
+
+
+def test_scene_save_json():
+    scene_data = KoikatuSceneData.load("./data/kk_scene_simple.png")
+    with tempfile.NamedTemporaryFile(suffix=".json") as tmp:
+        scene_data.save_json(tmp.name)
+        with open(tmp.name, "r", encoding="utf-8") as f:
+            dumped = json.load(f)
+
+    assert dumped["version"] == scene_data.version
+    assert dumped["map"] == scene_data.map
+    assert len(dumped["objects"]) == len(scene_data.objects)
+    assert "image" not in dumped
+
+
+def test_scene_save_json_with_image():
+    scene_data = KoikatuSceneData.load("./data/kk_scene_simple.png")
+    with tempfile.NamedTemporaryFile(suffix=".json") as tmp:
+        scene_data.save_json(tmp.name, include_image=True)
+        with open(tmp.name, "r", encoding="utf-8") as f:
+            dumped = json.load(f)
+
+    assert "image" in dumped
+    assert isinstance(dumped["image"], str)
 
 
 def count_all_objects(objects):

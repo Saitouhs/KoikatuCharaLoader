@@ -8,6 +8,7 @@ import io
 import json
 import os
 import struct
+import base64
 from typing import Any, Self
 
 from kkloader.funcs import get_png, load_length, load_string, load_type, msg_pack, msg_unpack, write_string
@@ -618,6 +619,81 @@ class KoikatuSceneData:
             "frame": self.frame,
             "objectCount": len(self.objects),
         }
+
+    def jsonalizable(self, include_image: bool = False) -> dict[str, Any]:
+        """Return a JSON-serializable dictionary of scene data.
+
+        Args:
+            include_image: Whether to include embedded PNG preview image as base64.
+        """
+        data: dict[str, Any] = {
+            "version": self.version,
+            "dataVersion": self.dataVersion,
+            "objects": self.objects,
+            "map": self.map,
+            "caMap": self.caMap,
+            "sunLightType": self.sunLightType,
+            "mapOption": self.mapOption,
+            "aceNo": self.aceNo,
+            "aceBlend": self.aceBlend,
+            "enableAOE": self.enableAOE,
+            "aoeColor": self.aoeColor,
+            "aoeRadius": self.aoeRadius,
+            "enableBloom": self.enableBloom,
+            "bloomIntensity": self.bloomIntensity,
+            "bloomBlur": self.bloomBlur,
+            "bloomThreshold": self.bloomThreshold,
+            "enableDepth": self.enableDepth,
+            "depthFocalSize": self.depthFocalSize,
+            "depthAperture": self.depthAperture,
+            "enableVignette": self.enableVignette,
+            "enableFog": self.enableFog,
+            "fogColor": self.fogColor,
+            "fogHeight": self.fogHeight,
+            "fogStartDistance": self.fogStartDistance,
+            "enableSunShafts": self.enableSunShafts,
+            "sunThresholdColor": self.sunThresholdColor,
+            "sunColor": self.sunColor,
+            "sunCaster": self.sunCaster,
+            "enableShadow": self.enableShadow,
+            "faceNormal": self.faceNormal,
+            "faceShadow": self.faceShadow,
+            "lineColorG": self.lineColorG,
+            "ambientShadow": self.ambientShadow,
+            "lineWidthG": self.lineWidthG,
+            "rampG": self.rampG,
+            "ambientShadowG": self.ambientShadowG,
+            "shaderType": self.shaderType,
+            "skyInfo": self.skyInfo,
+            "cameraSaveData": self.cameraSaveData,
+            "cameraData": self.cameraData,
+            "charaLight": self.charaLight,
+            "mapLight": self.mapLight,
+            "bgmCtrl": self.bgmCtrl,
+            "envCtrl": self.envCtrl,
+            "outsideSoundCtrl": self.outsideSoundCtrl,
+            "background": self.background,
+            "frame": self.frame,
+            "tail": self.tail,
+            "mod_header": self.mod_header,
+            "mod_unknown": self.mod_unknown,
+            "mod_data": self.mod_data,
+            "mod_tail": base64.b64encode(self.mod_tail).decode("ascii") if self.mod_tail else "",
+            "original_filename": self.original_filename,
+        }
+        if include_image and self.image:
+            data["image"] = base64.b64encode(self.image).decode("ascii")
+        return data
+
+    def save_json(self, filename: str, include_image: bool = False) -> None:
+        """Save the scene data as JSON.
+
+        Args:
+            filename: Path to output JSON file.
+            include_image: Whether to include embedded PNG preview image as base64.
+        """
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(self.jsonalizable(include_image=include_image), f, indent=2, ensure_ascii=False)
 
     def __str__(self):
         """String representation of the scene data"""
